@@ -1,0 +1,199 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "API de Autenticación de Usuario",
+    "description": "API para generar una URL de autenticación y verificar el estado de un ticket de validación.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.ejemplo.com/v1",
+      "description": "Servidor de Producción"
+    }
+  ],
+  "tags": [
+    {
+      "name": "ValidationTicked",
+      "description": "Operaciones relacionadas con la identificación del usuario."
+    }
+  ],
+  "paths": {
+    "/generate-url": {
+      "post": {
+        "tags": ["ValidationTicked"],
+        "summary": "Genera Ticked de validación",
+        "description": "Genera una URL de autenticación para el usuario",
+        "operationId": "generateUrl",
+        "requestBody": {
+          "description": "Información del usuario para generar la URL de autenticación",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "idNumber",
+                  "idType",
+                  "phone",
+                  "name"
+                ],
+                "properties": {
+                  "idNumber": {
+                    "type": "string",
+                    "example": "12345678",
+                    "description": "El número del documento de identidad del usuario (DNI)."
+                  },
+                  "idType": {
+                    "type": "string",
+                    "enum": ["dni"],
+                    "example": "dni",
+                    "description": "El tipo de documento de identidad del usuario."
+                  },
+                  "phone": {
+                    "type": "string",
+                    "example": "+51988987789",
+                    "description": "Número de teléfono activo con el código de país."
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "Juan Pérez",
+                    "description": "Nombre del usuario para comunicación durante el flujo."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "URL generada correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "example": "https://autenticacion.ejemplo.com/validar?token=123abc456",
+                      "description": "URL generada para el proceso de validación del usuario."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error en los datos enviados, alguno de los campos es inválido o nulo."
+          },
+          "401": {
+            "description": "Error de autenticación, token inválido o ausente."
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/validationTiket": {
+      "get": {
+        "tags": ["ValidationTicked"],
+        "summary": "Ver Ticked de validación",
+        "description": "Verifica el estado de la validación de un usuario",
+        "operationId": "validationTicket",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "ID único del ticket de validación."
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Token de autenticación (Bearer token)."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado del ticket de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "idNumber": {
+                      "type": "string",
+                      "example": "12345678",
+                      "description": "El número de documento de identidad del usuario."
+                    },
+                    "idType": {
+                      "type": "string",
+                      "enum": ["dni"],
+                      "example": "dni",
+                      "description": "Tipo de documento de identidad del usuario."
+                    },
+                    "publicId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "example": "a5e4c1d6-bbc8-4c25-bb89-3e8cce04db6e",
+                      "description": "UUID público del ticket de validación."
+                    },
+                    "state": {
+                      "type": "string",
+                      "enum": ["Pending", "Success", "Failed"],
+                      "example": "Pending",
+                      "description": "Estado del ticket de validación."
+                    },
+                    "partnerChannel": {
+                      "type": "string",
+                      "example": "App Móvil",
+                      "description": "Canal del socio que inició la validación."
+                    },
+                    "noteOfPartner": {
+                      "type": "string",
+                      "example": "Esperando respuesta del usuario.",
+                      "description": "Nota interna del socio sobre el estado de la validación."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error, parámetros de entrada inválidos."
+          },
+          "401": {
+            "description": "Error de autenticación, token inválido o ausente."
+          },
+          "404": {
+            "description": "Ticket de validación no encontrado."
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
