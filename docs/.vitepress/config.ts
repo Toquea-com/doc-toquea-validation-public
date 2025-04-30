@@ -34,4 +34,6 @@ export default defineConfig({
       },*/
     ],
   },
+
+  base: 'https://toquea-com.github.io/doc-toquea-validation-public'
 });
