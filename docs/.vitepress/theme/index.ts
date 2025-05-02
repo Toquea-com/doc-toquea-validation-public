@@ -11,7 +11,11 @@ export default {
   async enhanceApp({ app, router, siteData }) {
     const openapi = useOpenapi({
       spec,
-      config: {},
+      config: {
+        i18n: {
+          locale: 'es',
+        }
+      },
     });
 
     theme.enhanceApp({ app, openapi });

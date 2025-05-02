@@ -2,10 +2,6 @@ import { defineConfig } from 'vitepress';
 import { useSidebar } from 'vitepress-openapi'
 import spec from '../public/openapi.json' with { type: 'json' }
 
-
-import { loadEnv } from 'vitepress'
-
-
 const sidebar = useSidebar({
   spec,
   // Optionally, you can specify a link prefix for all generated sidebar items.
@@ -15,10 +11,11 @@ const sidebar = useSidebar({
 // refer https://vitepress.dev/reference/site-config for details
 export default defineConfig({
   lang: 'en-es',
-  title: 'Toquea Validation Api',
+  title: 'ToqueaValidation Api',
   description: 'Generate documentation from OpenAPI specifications.',
 
   themeConfig: {
+    siteTitle: 'Toquea Validation Api',
     nav: [{ text: 'API Reference', link: '/introduction' }],
 
     sidebar: [

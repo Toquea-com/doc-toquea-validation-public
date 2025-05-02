@@ -1,5 +1,5 @@
 ---
-title: vitepress-openapi
+title: Introducción
 ---
 
 <script setup lang="ts">

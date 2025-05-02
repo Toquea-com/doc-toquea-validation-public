@@ -77,6 +77,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "id": {
+                      "type": "string",
+                      "example": "bc34d9db-9d00-432d-837c-0382669c231e",
+                      "description": "url de la operación de validación"
+                    },
                     "url": {
                       "type": "string",
                       "example": "https://autenticacion.ejemplo.com/validar?token=123abc456",
@@ -100,6 +105,81 @@
           }
         ]
       }
+    },
+    "/validation-result/{id}": {
+      "get": {
+        "tags": ["ValidationTicket"],
+        "summary": "Obtener resultado de validación",
+        "description": "Obtiene el resultado final del proceso de validación de un usuario usando su identificador.",
+        "operationId": "getValidationResult",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Identificador único del proceso de validación (puede ser el idNumber u otro ID de referencia).",
+            "example": "22f8832b-f99f-4024-b3c6-6f72a3f35f99"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado de validación encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["idNumber", "idType", "state"],
+                  "properties": {
+                    "idNumber": {
+                      "type": "string",
+                      "example": "12345678"
+                    },
+                    "idType": {
+                      "type": "string",
+                      "enum": ["dni"],
+                      "example": "dni"
+                    },
+                    "state": {
+                      "type": "string",
+                      "example": "REJECTED_BY_PARTNER",
+                      "description": "Estado de validación (p. ej., APPROVED o variantes de REJECTED)."
+                    },
+                    "urlSelfie": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "URL de la selfie del usuario."
+                    },
+                    "urlDocFront": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "URL de la parte frontal del documento."
+                    },
+                    "urlDocBack": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "URL de la parte trasera del documento."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No se encontró información de validación para el ID proporcionado."
+          },
+          "401": {
+            "description": "No autorizado. Falta token o es inválido."
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
     }
   },
   "webhooks": {
@@ -114,6 +194,11 @@
                 "type": "object",
                 "required": ["idNumber", "idType", "state"],
                 "properties": {
+                  "id": {
+                    "type": "string",
+                    "example": "bc34d9db-9d00-432d-837c-0382669c231e",
+                    "description": "url de la operación de validación"
+                  },
                   "idNumber": {
                     "type": "string",
                     "example": "12345678",

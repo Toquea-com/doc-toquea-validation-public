@@ -1,7 +1,7 @@
 ---
 aside: false
 outline: false
-title: vitepress-openapi
+title: 'operaciones'
 ---
 
 <script setup lang="ts">
