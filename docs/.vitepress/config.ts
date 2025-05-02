@@ -2,6 +2,10 @@ import { defineConfig } from 'vitepress';
 import { useSidebar } from 'vitepress-openapi'
 import spec from '../public/openapi.json' with { type: 'json' }
 
+
+import { loadEnv } from 'vitepress'
+
+
 const sidebar = useSidebar({
   spec,
   // Optionally, you can specify a link prefix for all generated sidebar items.
@@ -41,5 +45,5 @@ export default defineConfig({
     ],
   },
 
-  //base: 'https://toquea-com.github.io/doc-toquea-validation-public'
+  base: import.meta?.env?.VITE_APP_HOST || '/'
 });

@@ -17,6 +17,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      VITE_APP_HOST: "https://toquea-com.github.io/doc-toquea-validation-public/"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
