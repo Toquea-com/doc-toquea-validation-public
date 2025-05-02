@@ -14,7 +14,7 @@ El cuerpo del webhook será un objeto `JSON` con los siguientes campos:
 |---------------|----------|-----------|-------------|
 | `idNumber`    | `string` | ✅ Sí      | Número del documento de identidad del usuario. |
 | `idType`      | `string` | ✅ Sí      | Tipo de documento (actualmente solo `dni`). |
-| `state`       | `string` | ✅ Sí      | Estado final de la validación. Puede ser `APPROVED`, `REJECTED`, o variantes como `REJECTED_BY_PARTNER`, `REJECTED_BY_TOQUEA`, etc. Se recomienda no validar por coincidencia exacta. |
+| `state`       | `string` | ✅ Sí      | Estado final de la validación. Puede ser `APPROVED`, `REJECTED`, `PENDING` |
 | `urlSelfie`   | `string` (URL) | ❌ No | URL de la selfie del usuario capturada durante la validación. |
 | `urlDocFront` | `string` (URL) | ❌ No | URL de la foto frontal del documento del usuario. |
 | `urlDocBack`  | `string` (URL) | ❌ No | URL de la foto posterior del documento del usuario. |
