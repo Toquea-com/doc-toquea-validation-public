@@ -45,5 +45,5 @@ export default defineConfig({
     ],
   },
 
-  base: import.meta?.env?.VITE_APP_HOST || '/'
+  base: 'https://toquea-com.github.io/doc-toquea-validation-public/'
 });
