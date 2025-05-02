@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.1.0",
   "info": {
     "title": "API de Autenticación de Usuario",
     "description": "API para generar una URL de autenticación y verificar el estado de un ticket de validación.",
@@ -13,15 +13,15 @@
   ],
   "tags": [
     {
-      "name": "ValidationTicked",
+      "name": "ValidationTicket",
       "description": "Operaciones relacionadas con la identificación del usuario."
     }
   ],
   "paths": {
     "/generate-url": {
       "post": {
-        "tags": ["ValidationTicked"],
-        "summary": "Genera Ticked de validación",
+        "tags": ["ValidationTicket"],
+        "summary": "Genera Ticket de validación",
         "description": "Genera una URL de autenticación para el usuario",
         "operationId": "generateUrl",
         "requestBody": {
@@ -31,12 +31,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "idNumber",
-                  "idType",
-                  "phone",
-                  "name"
-                ],
+                "required": ["idNumber", "idType", "phone", "name"],
                 "properties": {
                   "idNumber": {
                     "type": "string",
@@ -58,6 +53,16 @@
                     "type": "string",
                     "example": "Juan Pérez",
                     "description": "Nombre del usuario para comunicación durante el flujo."
+                  },
+                  "urlSuccess": {
+                    "type": "string",
+                    "example": "https://autenticacion.ejemplo.com/validar?success=true&token=123abc456",
+                    "description": "URL a la que se redirigirá al usuario si el resultado de la autenticación es exitoso."
+                  },
+                  "urlFailed": {
+                    "type": "string",
+                    "example": "https://autenticacion.ejemplo.com/validar?success=false&token=123abc456",
+                    "description": "URL a la que se redirigirá al usuario si no ha sido posible realizar la autenticación."
                   }
                 }
               }
@@ -96,10 +101,10 @@
         ]
       }
     },
-    "/validationTiket": {
+    "/validationTicket": {
       "get": {
-        "tags": ["ValidationTicked"],
-        "summary": "Ver Ticked de validación",
+        "tags": ["ValidationTicket"],
+        "summary": "Ver Ticket de validación",
         "description": "Verifica el estado de la validación de un usuario",
         "operationId": "validationTicket",
         "parameters": [
@@ -184,6 +189,77 @@
             "BearerAuth": []
           }
         ]
+      }
+    }
+  },
+  "webhooks": {
+    "idValidationResult": {
+      "post": {
+        "summary": "Entrega el resultado de la autenticación del identidad del usuario",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["idNumber", "idType", "state"],
+                "properties": {
+                  "idNumber": {
+                    "type": "string",
+                    "example": "12345678",
+                    "description": "El número del documento de identidad del usuario (DNI)."
+                  },
+                  "idType": {
+                    "type": "string",
+                    "enum": ["dni"],
+                    "example": "dni",
+                    "description": "El tipo de documento de identidad del usuario."
+                  },
+                  "state": {
+                    "type": "string",
+                    "example": "REJECTED_BY_PARTNER",
+                    "description": "Estado final de la validación. Puede ser 'APPROVED', 'REJECTED' o variantes como 'REJECTED_BY_PARTNER'."
+                  },
+                  "urlSelfie": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL de la selfie del usuario. Este campo es opcional."
+                  },
+                  "urlDocFront": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL de la foto frontal del documento del usuario. Este campo es opcional."
+                  },
+                  "urlDocBack": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL de la foto trasera del documento del usuario. Este campo es opcional."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Notificación recibida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["idNumber"],
+                  "properties": {
+                    "idNumber": {
+                      "type": "string",
+                      "example": "12345678",
+                      "description": "El número del documento de identidad enviado en el request."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   },

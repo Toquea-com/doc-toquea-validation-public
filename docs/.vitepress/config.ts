@@ -25,6 +25,12 @@ export default defineConfig({
           ...sidebar.generateSidebarGroups(),
         ],
       },
+      {
+        text: 'Webhooks',
+        items: [
+          { text: 'Resultado de validación', link: '/webhooks/id-validation-result' }
+        ]
+      }
       /*{
         text: 'One Page',
         items: [
@@ -35,5 +41,5 @@ export default defineConfig({
     ],
   },
 
-  base: 'https://toquea-com.github.io/doc-toquea-validation-public'
+  //base: 'https://toquea-com.github.io/doc-toquea-validation-public'
 });
