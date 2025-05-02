@@ -13,7 +13,7 @@ export default defineConfig({
   lang: 'en-es',
   
   title: 'ToqueaValidation Api',
-  description: 'Generate documentation from OpenAPI specifications.',
+  description: 'Documentación para la integración de Toquea validation en el proceso de Kuenta.',
 
   head: [['link', { rel: 'icon', href: 'public/favicon.svg' }]],
 
