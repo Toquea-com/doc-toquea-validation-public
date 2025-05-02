@@ -11,8 +11,11 @@ const sidebar = useSidebar({
 // refer https://vitepress.dev/reference/site-config for details
 export default defineConfig({
   lang: 'en-es',
+  
   title: 'ToqueaValidation Api',
   description: 'Generate documentation from OpenAPI specifications.',
+
+  head: [['link', { rel: 'icon', href: 'public/favicon.svg' }]],
 
   themeConfig: {
     siteTitle: 'Toquea Validation Api',
