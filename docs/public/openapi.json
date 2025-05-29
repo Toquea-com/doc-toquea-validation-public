@@ -11,250 +11,234 @@
       "description": "Servidor de Producción"
     }
   ],
-  "tags": [
-    {
-      "name": "ValidationTicket",
-      "description": "Operaciones relacionadas con la identificación del usuario."
-    }
-  ],
   "paths": {
-    "/generate-url": {
+    "/business": {
       "post": {
-        "tags": ["ValidationTicket"],
-        "summary": "Genera Ticket de validación",
-        "description": "Genera una URL de autenticación para el usuario",
-        "operationId": "generateUrl",
+        "parameters": [
+          {
+            "description": "Flag to enable mock mode",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "name": "mock",
+            "in": "query"
+          },
+          {
+            "description": "The merchant ID in UUID format",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "name": "x-merchant-id",
+            "in": "header"
+          }
+        ],
         "requestBody": {
-          "description": "Información del usuario para generar la URL de autenticación",
-          "required": true,
+          "description": "The validation request payload",
           "content": {
             "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["idNumber", "idType", "phone", "name"],
-                "properties": {
-                  "idNumber": {
-                    "type": "string",
-                    "example": "12345678",
-                    "description": "El número del documento de identidad del usuario (DNI)."
-                  },
-                  "idType": {
-                    "type": "string",
-                    "enum": ["dni"],
-                    "example": "dni",
-                    "description": "El tipo de documento de identidad del usuario."
-                  },
-                  "phone": {
-                    "type": "string",
-                    "example": "+51988987789",
-                    "description": "Número de teléfono activo con el código de país."
-                  },
-                  "name": {
-                    "type": "string",
-                    "example": "Juan Pérez",
-                    "description": "Nombre del usuario para comunicación durante el flujo."
-                  },
-                  "urlSuccess": {
-                    "type": "string",
-                    "example": "https://autenticacion.ejemplo.com/validar?success=true&token=123abc456",
-                    "description": "URL a la que se redirigirá al usuario si el resultado de la autenticación es exitoso."
-                  },
-                  "urlFailed": {
-                    "type": "string",
-                    "example": "https://autenticacion.ejemplo.com/validar?success=false&token=123abc456",
-                    "description": "URL a la que se redirigirá al usuario si no ha sido posible realizar la autenticación."
+              "examples": {
+                "RequestExample": {
+                  "value": {
+                    "name": "Juan Perez",
+                    "phoneNumber": "+51934567890",
+                    "documentType": "pe-dni",
+                    "documentNumber": "12345678",
+                    "successRedirectUrl": "https://example.com/success",
+                    "failureRedirectUrl": "https://example.com/error"
                   }
                 }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/ValidationRequestDto"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
-          "200": {
-            "description": "URL generada correctamente",
+          "201": {
+            "description": "Identity verification created successfully",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string",
-                      "example": "bc34d9db-9d00-432d-837c-0382669c231e",
-                      "description": "url de la operación de validación"
-                    },
-                    "url": {
-                      "type": "string",
-                      "example": "https://autenticacion.ejemplo.com/validar?token=123abc456",
-                      "description": "URL generada para el proceso de validación del usuario."
+                "examples": {
+                  "SuccessResponse": {
+                    "value": {
+                      "message": "success",
+                      "data": {
+                        "id": "72e7918a-5aaa-4b7c-a471-23c5800c0e4e",
+                        "name": "Juan Perez",
+                        "documentType": "pe-dni",
+                        "documentNumber": "12345678",
+                        "publicId": "01971cb5-4751-7582-b256-bbe0df60f0e4",
+                        "status": "PENDING",
+                        "partnerChannel": "Keynua",
+                        "partnerNote": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+                        "merchantId": "01890f3b-7c9a-7b4b-8c9a-7b4b8c9a7b4b",
+                        "successRedirectUrl": "https://example.com/success",
+                        "failureRedirectUrl": "https://example.com/error"
+                      }
                     }
                   }
+                },
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ValidationRequestDto"
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
-          },
-          "400": {
-            "description": "Error en los datos enviados, alguno de los campos es inválido o nulo."
-          },
-          "401": {
-            "description": "Error de autenticación, token inválido o ausente."
           }
         },
-        "security": [
-          {
-            "BearerAuth": []
-          }
+        "summary": "Create Identity Verification",
+        "tags": [
+          "Business Controller"
         ]
       }
     },
-    "/validation-result/{id}": {
+    "/get-state/{publicId}": {
       "get": {
-        "tags": ["ValidationTicket"],
-        "summary": "Obtener resultado de validación",
-        "description": "Obtiene el resultado final del proceso de validación de un usuario usando su identificador.",
-        "operationId": "getValidationResult",
+        "tags": [
+          "State Validation"
+        ],
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
+            "description": "The merchant ID associated with the request",
+            "name": "x-merchant-id",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             },
-            "description": "Identificador único del proceso de validación (puede ser el idNumber u otro ID de referencia).",
-            "example": "22f8832b-f99f-4024-b3c6-6f72a3f35f99"
+            "in": "header"
+          },
+          {
+            "description": "The public ID of the validation ticket",
+            "name": "publicId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path"
           }
         ],
         "responses": {
           "200": {
-            "description": "Resultado de validación encontrado.",
+            "description": "Successfully retrieved the validation ticket",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": ["idNumber", "idType", "state"],
-                  "properties": {
-                    "idNumber": {
-                      "type": "string",
-                      "example": "12345678"
-                    },
-                    "idType": {
-                      "type": "string",
-                      "enum": ["dni"],
-                      "example": "dni"
-                    },
-                    "state": {
-                      "type": "string",
-                      "example": "REJECTED_BY_PARTNER",
-                      "description": "Estado de validación (p. ej., APPROVED o variantes de REJECTED)."
-                    },
-                    "urlSelfie": {
-                      "type": "string",
-                      "format": "uri",
-                      "description": "URL de la selfie del usuario."
-                    },
-                    "urlDocFront": {
-                      "type": "string",
-                      "format": "uri",
-                      "description": "URL de la parte frontal del documento."
-                    },
-                    "urlDocBack": {
-                      "type": "string",
-                      "format": "uri",
-                      "description": "URL de la parte trasera del documento."
+                "examples": {
+                  "SuccessResponse": {
+                    "value": {
+                      "message": "success",
+                      "data": {
+                        "id": "cb8a9360-02c4-4c38-9edd-858e504d8393",
+                        "documentNumber": "87654321",
+                        "documentType": "pe-dni",
+                        "merchantId": "01890f3b-7c9a-7b4b-8c9a-7b4b8c9a7b4b",
+                        "name": "Pedro Martinez",
+                        "partnerChannel": "Keynua",
+                        "partnerNote": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjaWQiOiJlYTY0ZTYxMC0zYjMyLTExZjAtODEyNi00YjhmYzI0YjAyNjNlMSIsInRva2VuX3VzZSI6InNpZ24iLCJpc3MiOiJodHRwczovL2FwaS5zdGcua2V5bnVhLmNvbS9jb250cmFjdHMiLCJ1aWQiOjAsInBpZCI6ImMyNWFlMTBmMTBlYTJkZjhlYjBjZGI5YzMzOWQ5Yjk4NjY3M2Y4ZGRmZWMzYzZhOTQ2MWUwYWNlYWE2NjJmNzcifQ.2y2eItaSwCyonxPwvFBoM92xkr7xAgomCP5CaE8uXb4",
+                        "publicId": "019718be-0774-7bcf-ac23-e602c3eecd55",
+                        "status": "PENDING",
+                        "successRedirectUrl": "https://example.com/success",
+                        "failureRedirectUrl": "https://example.com/error"
+                      }
                     }
                   }
+                },
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ValidationTicket"
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
-          },
-          "404": {
-            "description": "No se encontró información de validación para el ID proporcionado."
-          },
-          "401": {
-            "description": "No autorizado. Falta token o es inválido."
           }
         },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
+        "summary": "Get By Id"
       }
     }
   },
   "webhooks": {
-    "idValidationResult": {
+    "/webhook/keynua": {
       "post": {
-        "summary": "Entrega el resultado de la autenticación del identidad del usuario",
         "requestBody": {
-          "required": true,
+          "description": "The received webhook data.",
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["idNumber", "idType", "state"],
+                "required": [
+                  "type",
+                  "accountId",
+                  "payload"
+                ],
                 "properties": {
-                  "id": {
-                    "type": "string",
-                    "example": "bc34d9db-9d00-432d-837c-0382669c231e",
-                    "description": "url de la operación de validación"
+                  "type": {
+                    "$ref": "#/components/schemas/WebhookType"
                   },
-                  "idNumber": {
-                    "type": "string",
-                    "example": "12345678",
-                    "description": "El número del documento de identidad del usuario (DNI)."
+                  "accountId": {
+                    "type": "string"
                   },
-                  "idType": {
-                    "type": "string",
-                    "enum": ["dni"],
-                    "example": "dni",
-                    "description": "El tipo de documento de identidad del usuario."
-                  },
-                  "state": {
-                    "type": "string",
-                    "example": "REJECTED_BY_PARTNER",
-                    "description": "Estado final de la validación. Puede ser 'APPROVED', 'REJECTED' o variantes como 'REJECTED_BY_PARTNER'."
-                  },
-                  "urlSelfie": {
-                    "type": "string",
-                    "format": "uri",
-                    "description": "URL de la selfie del usuario. Este campo es opcional."
-                  },
-                  "urlDocFront": {
-                    "type": "string",
-                    "format": "uri",
-                    "description": "URL de la foto frontal del documento del usuario. Este campo es opcional."
-                  },
-                  "urlDocBack": {
-                    "type": "string",
-                    "format": "uri",
-                    "description": "URL de la foto trasera del documento del usuario. Este campo es opcional."
+                  "payload": {
+                    "$ref": "#/components/schemas/WebhookPayload"
                   }
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
-            "description": "Notificación recibida exitosamente",
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["idNumber"],
+                  "required": [
+                    "message"
+                  ],
                   "properties": {
-                    "idNumber": {
+                    "message": {
                       "type": "string",
-                      "example": "12345678",
-                      "description": "El número del documento de identidad enviado en el request."
+                      "example": "success"
                     }
                   }
                 }
               }
             }
           }
-        }
+        },
+        "summary": "Webhook",
+        "tags": [
+          "Webhook Keynua Controller"
+        ]
       }
     }
   },
@@ -264,6 +248,372 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {}
+        }
+      },
+      "ValidationRequestDto": {
+        "type": "object",
+        "required": [
+          "name",
+          "phoneNumber",
+          "documentType",
+          "documentNumber"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 50,
+            "pattern": "\\S"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 12,
+            "pattern": "\\S"
+          },
+          "documentType": {
+            "type": "string",
+            "pattern": "pe-dni"
+          },
+          "documentNumber": {
+            "type": "string",
+            "pattern": "\\d{8}"
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "failureRedirectUrl": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "ValidationTicket": {
+        "type": "object",
+        "required": [
+          "name",
+          "documentType",
+          "documentNumber",
+          "publicId",
+          "status",
+          "partnerChannel",
+          "partnerNote",
+          "merchantId",
+          "successRedirectUrl",
+          "failureRedirectUrl"
+        ],
+        "properties": {
+          "id": {
+            "type": [
+              "string"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "documentType": {
+            "type": "string"
+          },
+          "documentNumber": {
+            "type": "string"
+          },
+          "publicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ValidationTicketStatus"
+          },
+          "partnerChannel": {
+            "type": "string"
+          },
+          "partnerNote": {
+            "type": "string"
+          },
+          "merchantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "failureRedirectUrl": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "ValidationTicketStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "FAILED",
+          "SUCCESS"
+        ]
+      },
+      "IdentityVerificationCreatedDto": {
+        "type": "object",
+        "required": [
+          "language",
+          "reference",
+          "contractId",
+          "documentNumber",
+          "id",
+          "accountId",
+          "createdAt",
+          "accountEmail",
+          "organizationId",
+          "accountName",
+          "title"
+        ],
+        "properties": {
+          "language": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": "string"
+          },
+          "documentNumber": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "accountEmail": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "IdentityVerificationFinishedDto": {
+        "type": "object",
+        "required": [
+          "language",
+          "reference",
+          "contractId",
+          "documentNumber",
+          "id",
+          "accountId",
+          "createdAt",
+          "startedAt",
+          "accountEmail",
+          "organizationId",
+          "accountName",
+          "title",
+          "userEmail",
+          "userPhone",
+          "userToken",
+          "userIdInfo",
+          "alerts"
+        ],
+        "properties": {
+          "language": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": "string"
+          },
+          "documentNumber": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string"
+          },
+          "accountEmail": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "userEmail": {
+            "type": "string"
+          },
+          "userPhone": {
+            "type": "string"
+          },
+          "userToken": {
+            "type": "string"
+          },
+          "userIdInfo": {
+            "type": "string"
+          },
+          "alerts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KeynuaVerificationAlertDto"
+            }
+          }
+        }
+      },
+      "IdentityVerificationStartedDto": {
+        "type": "object",
+        "required": [
+          "language",
+          "reference",
+          "contractId",
+          "documentNumber",
+          "id",
+          "accountId",
+          "createdAt",
+          "startedAt",
+          "accountEmail",
+          "organizationId",
+          "accountName",
+          "title",
+          "userEmail",
+          "userPhone",
+          "userToken"
+        ],
+        "properties": {
+          "language": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "contractId": {
+            "type": "string"
+          },
+          "documentNumber": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string"
+          },
+          "accountEmail": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "userEmail": {
+            "type": "string"
+          },
+          "userPhone": {
+            "type": "string"
+          },
+          "userToken": {
+            "type": "string"
+          }
+        }
+      },
+      "KeynuaVerificationAlertDataDto": {
+        "type": "object",
+        "required": [
+          "code",
+          "dni"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dni": {
+            "type": "string"
+          }
+        }
+      },
+      "KeynuaVerificationAlertDto": {
+        "type": "object",
+        "required": [
+          "type",
+          "data"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/KeynuaVerificationAlertDataDto"
+          }
+        }
+      },
+      "WebhookPayload": {
+        "type": "object",
+        "description": "Payload of the webhook. The type of the payload depends on the type of the webhook.",
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "IdentityVerificationCreated": "#/components/schemas/IdentityVerificationCreatedDto",
+            "IdentityVerificationStarted": "#/components/schemas/IdentityVerificationStartedDto",
+            "IdentityVerificationFinished": "#/components/schemas/IdentityVerificationFinishedDto"
+          }
+        }
+      },
+      "WebhookType": {
+        "type": "string",
+        "enum": [
+          "IDENTITY_VERIFICATION_CREATED",
+          "IDENTITY_VERIFICATION_STARTED",
+          "IDENTITY_VERIFICATION_FINISHED"
+        ]
       }
     }
   }
